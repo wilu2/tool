@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: 合同比对
+paths:
+  /ai/service/v1/contract_compare:
+    post:
+      requestBody:
+        description: 2份合同的识别结果
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  doc_index:
+                    type: integer
+                    description: |
+                        文档编号
+                  pages:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          lines:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                char_candidates_score:
+                                  type: array
+                                  items:
+                                    type: array
+                                    items:
+                                      type: number
+                                char_scores:
+                                  type: array
+                                  items:
+                                    type: number
+                                char_polygons:
+                                  type: array
+                                  items:
+                                    type: array
+                                    items: 
+                                      type: integer
+                                char_centers:
+                                  type: array
+                                  items: 
+                                    type: array
+                                    items: 
+                                      type: integer
+                                poly:
+                                  type: array
+                                  items: 
+                                    type: integer
+                                char_candidates:
+                                  type: array
+                                  items:
+                                    type: array
+                                    items: 
+                                      type: string
+                                score:
+                                  type: number
+                                text:
+                                  type: string
+                                type:
+                                  type: integer
+                          status:
+                            type: integer
+                            description: page识别状态 
+                          page_index: 
+                            type: integer
+                            description: pageid
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '../Common/CodeMessage/1.0.0.openapi.yaml#/components/schemas/CodeMessage'
+                  - $ref: '#/components/schemas/contract_compare'
+components:
+  schemas:
+    contract_compare:
+      type: object
+      properties:
+        version: 
+          type: string
+        duration:
+          type: number
+          format: float
+        result:
+          type: object
+          properties:
+            detail:
+              type: array
+              description: |
+                差异项集合
+              items:
+                type: array
+                description: 差异对
+                maxItems: 2
+                minItems: 2
+                items:
+                  type: object
+                  properties:
+                    text: 
+                      type: string
+                      description: 差异字符串
+                    polygon:
+                      type: array
+                      description: |
+                        文本行位置，使用多边形的点坐标以顺时针构成闭合区间
+                      maxItems: 8
+                      minItems: 8
+                      items:
+                        type: integer
+                    char_polygons:
+                      type: array
+                      description: 字符四边形点坐标，以顺时针构成闭合区域
+                      items:
+                        type: array
+                        minItems: 8
+                        maxItems: 8
+                        items: 
+                          type: integer
+                    char_candidates:
+                      type: array
+                      description: 差异字符候选字
+                      items:
+                        type: array
+                        items: 
+                          type: string
+                    char_candidates_score:
+                      type: array
+                      description: 差异字符候选字置信度
+                      items:
+                        type: array
+                        minimum: 0
+                        maximum: 1
+                        items:
+                          type: number
+                          format: float
+                    page_index:
+                      type: integer
+                      description: "字符所属页码编号"
+                    doc_index:
+                      type: integer
+                      description: "字符所属文档编号"
+                    status:
+                      type: string
+                      description: 增删改状态
+                      enum:
+                      - INSERT
+                      - DELETE
+                      - CHANGE
+            similarity: 
+              type: number
+              format: float
+              description: 相似度
+              
+                    

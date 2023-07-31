@@ -1,0 +1,23 @@
+# ocr:
+#   host: sh-imgs-sandbox.intsig.net
+#   port: 443
+#   path: /icr/ctpn_recognize
+#   #path: /ai/service/v2/recognize
+
+# ocr:
+#   host: temp-contract-ie-demo.ai.intsig.net
+#   #host: ocr-api-sandbox.ccint.com
+#   port: 443
+#   path: /doc_robot/ocr?engine=table
+
+ocr:
+  host: temp-contract-robot-parser.ai.intsig.net
+  port: 443
+  path: /ai/service/v1/doc_robot_ocr
+
+#https://temp-doc-ocr1.ai.intsig.net/ai/service/v1/doc_robot_ocr
+
+scan_path: /home/vincent/workspace/contract_compare/56
+
+
+#https://ocr-api.ccint.com/ai/service/v1/doc_robot_ocr

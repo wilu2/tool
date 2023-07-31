@@ -1,0 +1,41 @@
+build_centos:
+  image: harbor.intsig.net/vincent_xie/centos:7.5.1804_lua_5.1.4
+  tags:
+    - vincent_wsl_ubuntu 
+  stage: build
+  script:
+      # 如果程序中需要用CI下载别人的库，需要设置access_token， 这是是用工程中的download.sh下载的
+    - echo "${PERSONAL_ACCESS_TOKEN}" > ./access_token
+    - mkdir -p build && cd build && cmake -DBUILD_LUA=on .. && make install && cd ${CI_PROJECT_DIR}
+    - mv build/install/* .
+    # 这里的是为了别人下载库的时候不用运行程序就可以知道版本号 格式 2020-02-02-master-6c9169f06d332b00bad
+    - echo "$(date -d @$(git log -1  --format="%at") +"%Y-%m-%d")-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:16}" > ${CI_PROJECT_DIR}/version.txt
+  artifacts:
+    name: ${TARGET_NAME}_${CI_JOB_NAME}
+    paths:
+      - include
+      - lib
+      - version.txt
+      - README.md
+    expire_in: 1 week
+  
+release_centos:
+  tags:
+    - vincent_wsl_ubuntu 
+  stage: release
+
+  rules:
+    - if: $CI_COMMIT_TAG #这里代表只触发打tag的代码 
+
+  script:
+    - echo "build release"
+    - echo "$(date -d @$(git log -1  --format="%at") +"%Y-%m-%d")-${CI_COMMIT_TAG}-${CI_COMMIT_SHA:0:16}" > ${CI_PROJECT_DIR}/version.txt
+  dependencies:
+    - build_linux
+  artifacts:
+    name: ${TARGET_NAME}_${CI_JOB_NAME}_${CI_COMMIT_TAG}
+    paths:
+      - include
+      - lib
+      - version.txt
+      - README.md

@@ -1,0 +1,43 @@
+build_android:
+  image: harbor.intsig.net/vincent_xie/ndk_cv:r17c_opencv3.4.2
+  tags:
+      - vincent_ubuntu_builder
+  stage: build
+  script:
+      - mkdir build_armv8 && cd build_armv8 && cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL=c++_static .. && make install && cd ..
+      - mkdir build_armv7 && cd build_armv7 && cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI="armeabi-v7a" -DANDROID_STL=c++_static  .. && make install && cd ..
+      - cd ${CI_PROJECT_DIR}
+      - mkdir lib && mkdir lib/armeabi-v7a && mkdir lib/arm64-v8a && mkdir include 
+      - cp build_armv8/install/include/* include/
+      - mv build_armv7/install/lib/* lib/armeabi-v7a/
+      - mv build_armv8/install/lib/* lib/arm64-v8a/
+          # 这里的是为了别人下载库的时候不用运行程序就可以知道版本号 格式 2020-02-02-master-6c9169f06d332b00bad
+      - echo "$(date -d @$(git log -1  --format="%at") +"%Y-%m-%d")-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:16}" > ${CI_PROJECT_DIR}/version.txt
+
+  artifacts:
+    name: ${TARGET_NAME}_${CI_JOB_NAME}
+    paths:
+      - include
+      - lib
+      - version.txt
+      - README.md
+    expire_in: 1 week
+
+release_android:
+  tags:
+    - vincent_ubuntu_builder
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "release"
+    - echo "$(date -d @$(git log -1  --format="%at") +"%Y-%m-%d")-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:16}" > ${CI_PROJECT_DIR}/version.txt
+  dependencies:
+    - build_android
+  artifacts:
+    name: ${TARGET_NAME}_${CI_JOB_NAME}_${CI_COMMIT_TAG}
+    paths:
+      - lib
+      - include
+      - version.txt
+      - README.md
